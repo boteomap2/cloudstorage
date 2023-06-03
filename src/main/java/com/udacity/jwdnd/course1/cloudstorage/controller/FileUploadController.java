@@ -44,13 +44,18 @@ public class FileUploadController {
             return "redirect:/result?error";
         }
 
-        fileUploadService.saveFile(fileUpload, userId);
+        int cnt = fileUploadService.saveFile(fileUpload, userId);
+        if (cnt == 0) {
+            redirectAttributes.addFlashAttribute("errMsg", "Upload file failed");
+            return "redirect:/result?error";
+        }
         return "redirect:/result?success";
     }
 
     @GetMapping("/view")
-    public ResponseEntity<byte[]> handleViewFile(Integer fileId) {
-        FileUpload file = fileUploadService.getFileById(fileId);
+    public ResponseEntity<byte[]> handleViewFile(Integer fileId, Authentication authentication) {
+        Integer userId = ((User) authentication.getPrincipal()).getUserId();
+        FileUpload file = fileUploadService.getFileById(fileId, userId);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentDispositionFormData("attachment", file.getFileName());
         headers.setContentType(MediaType.parseMediaType(file.getContentType()));
@@ -58,8 +63,9 @@ public class FileUploadController {
     }
 
     @GetMapping("/delete")
-    public String handleDeleteFile(Integer fileId, RedirectAttributes redirectAttributes) {
-        int cnt = fileUploadService.deleteFileById(fileId);
+    public String handleDeleteFile(Integer fileId, Authentication authentication, RedirectAttributes redirectAttributes) {
+        Integer userId = ((User) authentication.getPrincipal()).getUserId();
+        int cnt = fileUploadService.deleteFileById(fileId, userId);
         if (cnt == 0) {
             redirectAttributes.addFlashAttribute("errMsg", "Not exist file");
             return "redirect:/result?error";

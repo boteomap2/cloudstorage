@@ -14,14 +14,13 @@ public interface FileUploadMapper {
     @Select("SELECT * FROM FILES WHERE filename = #{fileName} AND userid = #{userId}")
     FileUpload getFileByName(String fileName, Integer userId);
 
-    @Select("SELECT * FROM FILES WHERE fileId = #{fileId}")
-    FileUpload getFileById(Integer fileId);
+    @Select("SELECT * FROM FILES WHERE fileId = #{fileId} AND userid = #{userId}")
+    FileUpload getFileById(Integer fileId, Integer userId);
 
     @Insert("INSERT INTO FILES (filename, contenttype, filesize, userid, filedata) VALUES(#{fileName}, #{contentType}, #{fileSize}, #{userId}, #{fileData})")
-    @Options(useGeneratedKeys = true, keyProperty = "fileId")
     int saveFile(FileUpload file);
 
-    @Delete("DELETE FROM FILES WHERE fileId = #{fileId}")
-    int deleteFileById(Integer fileId);
+    @Delete("DELETE FROM FILES WHERE fileId = #{fileId} AND userid = #{userId}")
+    int deleteFileById(Integer fileId, Integer userId);
 
 }

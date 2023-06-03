@@ -75,13 +75,14 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr>
+                        <tr th:each="note : ${ListNote}">
                             <td>
-                                <button type="button" class="btn btn-success">Edit</button>
-                                <a class="btn btn-danger">Delete</a>
+                                <button type="button" class="btn btn-success"
+                                        th:onclick="showNoteModal([[${note}]])">Edit</button>
+                                <a class="btn btn-danger" th:href="@{/note/delete(noteId=${note.noteId})}">Delete</a>
                             </td>
-                            <th scope="row">Example Note Title</th>
-                            <td>Example Note Description </td>
+                            <th th:text="${note.noteTitle}" scope="row">Example Note Title</th>
+                            <td th:text="${note.noteDescription}">Example Note Description </td>
                         </tr>
                         </tbody>
                     </table>
@@ -97,7 +98,7 @@
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form action="#" method="POST">
+                                <form th:action="@{/note/save}" method="POST">
                                     <input type="hidden" name="noteId" id="note-id">
                                     <div class="form-group">
                                         <label for="note-title" class="col-form-label">Title</label>
@@ -191,12 +192,14 @@
 <script th:src="@{/js/bootstrap.min.js}"></script>
 
 <!--For opening the note modal-->
-<script type="text/javascript">
+<script type="text/javascript" th:inline="javascript">
     // For opening the note modal
-    function showNoteModal(noteId, noteTitle, noteDescription) {
-        $('#note-id').val(noteId ? noteId : '');
-        $('#note-title').val(noteTitle ? noteTitle : '');
-        $('#note-description').val(noteDescription ? noteDescription : '');
+    function showNoteModal(note) {
+        if (note) {
+            $('#note-id').val(note.noteId ? note.noteId : '');
+            $('#note-title').val(note.noteTitle ? note.noteTitle : '');
+            $('#note-description').val(note.noteDescription ? note.noteDescription : '');
+        }
         $('#noteModal').modal('show');
     }
 

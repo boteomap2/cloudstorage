@@ -23,22 +23,22 @@ public class FileUploadService {
         return fileUploadMapper.getFileByName(handleFileName(fileUpload), userId);
     }
 
-    public FileUpload getFileById(Integer fileId) {
-        return fileUploadMapper.getFileById(fileId);
+    public FileUpload getFileById(Integer fileId, Integer userId) {
+        return fileUploadMapper.getFileById(fileId, userId);
     }
 
-    public void saveFile(MultipartFile fileUpload, Integer userId) throws IOException {
+    public int saveFile(MultipartFile fileUpload, Integer userId) throws IOException {
         FileUpload file = new FileUpload();
         file.setFileName(handleFileName(fileUpload));
         file.setContentType(fileUpload.getContentType());
         file.setFileSize(String.valueOf(fileUpload.getSize()));
         file.setFileData(fileUpload.getBytes());
         file.setUserId(userId);
-        fileUploadMapper.saveFile(file);
+        return fileUploadMapper.saveFile(file);
     }
 
-    public int deleteFileById(Integer fileId) {
-        return fileUploadMapper.deleteFileById(fileId);
+    public int deleteFileById(Integer fileId, Integer userId) {
+        return fileUploadMapper.deleteFileById(fileId, userId);
     }
 
     private String handleFileName(MultipartFile fileUpload) {
