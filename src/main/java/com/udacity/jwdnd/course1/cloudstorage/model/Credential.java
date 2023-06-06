@@ -1,5 +1,6 @@
 package com.udacity.jwdnd.course1.cloudstorage.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ public class Credential {
     private Integer credentialId;
     private String url;
     private String username;
+    @JsonIgnore
     private String key;
     private String password;
     private Integer userId;

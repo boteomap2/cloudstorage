@@ -3,7 +3,6 @@ package com.udacity.jwdnd.course1.cloudstorage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -13,6 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 
 import java.io.File;
+import java.util.List;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CloudStorageApplicationTests {
 
@@ -42,6 +43,330 @@ class CloudStorageApplicationTests {
 	public void getLoginPage() {
 		driver.get("http://localhost:" + this.port + "/login");
 		Assertions.assertEquals("Login", driver.getTitle());
+	}
+
+	@Test
+	public void notAccessibleWithoutLogin() {
+		driver.get("http://localhost:" + this.port + "/home");
+		Assertions.assertNotEquals("Home", driver.getTitle());
+	}
+
+	@Test
+	public void flowLoginLogout() {
+		doMockSignUp("flowLoginLogout","flowLoginLogout","flowLoginLogout","flowLoginLogout");
+		doLogIn("flowLoginLogout", "flowLoginLogout");
+
+		// Verify that the user is logged in.
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+		webDriverWait.until(ExpectedConditions.titleContains("Home"));
+		Assertions.assertEquals("Home", driver.getTitle());
+
+		// Verify that the user is logged out.
+		WebElement logoutButton= driver.findElement(By.id("buttonLogout"));
+		logoutButton.click();
+		webDriverWait.until(ExpectedConditions.titleContains("Login"));
+		Assertions.assertEquals("Login", driver.getTitle());
+	}
+
+	@Test
+	public void createNote() {
+		try {
+			doLogIn("note", "note");
+		} catch (Exception e) {
+			doMockSignUp("note","note","note","note");
+			doLogIn("note", "note");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to Notes tab
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Press add new note button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("add-note-btn")));
+		WebElement addNewNoteButton= driver.findElement(By.id("add-note-btn"));
+		addNewNoteButton.click();
+
+		// Fill out the note
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
+		WebElement inputTitle = driver.findElement(By.id("note-title"));
+		inputTitle.click();
+		inputTitle.sendKeys("Note title");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-description")));
+		WebElement inputDescription = driver.findElement(By.id("note-description"));
+		inputDescription.click();
+		inputDescription.sendKeys("Note description");
+
+		// Submit
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-submit-btn")));
+		WebElement submitNote = driver.findElement(By.id("note-submit-btn"));
+		submitNote.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-notes-tab")));
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Verify that the note was created
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTable")));
+		WebElement table = driver.findElement(By.id("noteTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement firstNoteTitle = rows.get(1).findElement(By.tagName("th"));
+		WebElement firstNoteDetail = (rows.get(1).findElements(By.tagName("td"))).get(1);
+
+		Assertions.assertAll("Should return correct note",
+				() -> Assertions.assertEquals("Note title", firstNoteTitle.getText()),
+				() -> Assertions.assertEquals("Note description", firstNoteDetail.getText()));
+	}
+
+	@Test
+	public void editNote() {
+		try {
+			doLogIn("note", "note");
+		} catch (Exception e) {
+			doMockSignUp("note","note","note","note");
+			doLogIn("note", "note");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to Notes tab
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Press edit note button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTable")));
+		WebElement table = driver.findElement(By.id("noteTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement editbtn = rows.get(1).findElement(By.tagName("button"));
+		editbtn.click();
+
+		// Fill out the note
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
+		WebElement inputTitle = driver.findElement(By.id("note-title"));
+		inputTitle.click();
+		inputTitle.clear();
+		inputTitle.sendKeys("Note title edited");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-description")));
+		WebElement inputDescription = driver.findElement(By.id("note-description"));
+		inputDescription.click();
+		inputDescription.clear();
+		inputDescription.sendKeys("Note description edited");
+
+		// Submit
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-submit-btn")));
+		WebElement submitNote = driver.findElement(By.id("note-submit-btn"));
+		submitNote.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-notes-tab")));
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Verify that the note was created
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTable")));
+		table = driver.findElement(By.id("noteTable"));
+		rows = table.findElements(By.tagName("tr"));
+		WebElement firstNoteTitle = rows.get(1).findElement(By.tagName("th"));
+		WebElement firstNoteDetail = (rows.get(1).findElements(By.tagName("td"))).get(1);
+
+		Assertions.assertAll("Should return correct note",
+				() -> Assertions.assertEquals("Note title edited", firstNoteTitle.getText()),
+				() -> Assertions.assertEquals("Note description edited", firstNoteDetail.getText()));
+	}
+
+	@Test
+	public void deleteNote() {
+		try {
+			doLogIn("note", "note");
+		} catch (Exception e) {
+			doMockSignUp("note","note","note","note");
+			doLogIn("note", "note");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to Notes tab
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Press edit note button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTable")));
+		WebElement table = driver.findElement(By.id("noteTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement deletebtn = rows.get(1).findElement(By.tagName("a"));
+		deletebtn.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-notes-tab")));
+		driver.findElement(By.id("nav-notes-tab")).click();
+
+		// Verify that the note was created
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("noteTable")));
+		table = driver.findElement(By.id("noteTable"));
+		rows = table.findElements(By.tagName("tr"));
+
+		Assertions.assertEquals(1, rows.size());
+	}
+
+	@Test
+	public void cCredential() {
+		try {
+			doLogIn("credential", "credential");
+		} catch (Exception e) {
+			doMockSignUp("credential","credential","credential","credential");
+			doLogIn("credential", "credential");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to credential tab
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Press add new credential button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("add-credential-btn")));
+		WebElement addNewCredentialButton= driver.findElement(By.id("add-credential-btn"));
+		addNewCredentialButton.click();
+
+		// Fill out the credential
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		WebElement inputUrl = driver.findElement(By.id("credential-url"));
+		inputUrl.click();
+		inputUrl.sendKeys("google.com");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-username")));
+		WebElement inputUsername = driver.findElement(By.id("credential-username"));
+		inputUsername.click();
+		inputUsername.sendKeys("username");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-password")));
+		WebElement inputPassword = driver.findElement(By.id("credential-password"));
+		inputPassword.click();
+		inputPassword.sendKeys("123");
+
+		// Submit
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-submit-btn")));
+		WebElement submitNote = driver.findElement(By.id("credential-submit-btn"));
+		submitNote.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-credentials-tab")));
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Verify that the credential was created
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialTable")));
+		WebElement table = driver.findElement(By.id("credentialTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement firstCredentialUrl = rows.get(1).findElement(By.tagName("th"));
+		WebElement firstCredentialPassword = (rows.get(1).findElements(By.tagName("td"))).get(1);
+
+		Assertions.assertAll("Should return correct credential",
+				() -> Assertions.assertEquals("google.com", firstCredentialUrl.getText()),
+				() -> Assertions.assertEquals("username", firstCredentialPassword.getText()));
+	}
+
+	@Test
+	public void editCredential() {
+		try {
+			doLogIn("credential", "credential");
+		} catch (Exception e) {
+			doMockSignUp("credential","credential","credential","credential");
+			doLogIn("credential", "credential");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to credential tab
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Press edit credential button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialTable")));
+		WebElement table = driver.findElement(By.id("credentialTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement editbtn = rows.get(1).findElement(By.tagName("button"));
+		editbtn.click();
+
+		// Edit the credential
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
+		WebElement inputUrl = driver.findElement(By.id("credential-url"));
+		inputUrl.click();
+		inputUrl.clear();
+		inputUrl.sendKeys("google.com.vn");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-username")));
+		WebElement inputUsername = driver.findElement(By.id("credential-username"));
+		inputUsername.click();
+		inputUsername.clear();
+		inputUsername.sendKeys("usernameedited");
+
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-password")));
+		WebElement inputPassword = driver.findElement(By.id("credential-password"));
+		inputPassword.click();
+		inputPassword.clear();
+		inputPassword.sendKeys("456");
+
+		// Submit
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-submit-btn")));
+		WebElement submitNote = driver.findElement(By.id("credential-submit-btn"));
+		submitNote.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-credentials-tab")));
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Verify that the credential was created
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialTable")));
+		table = driver.findElement(By.id("credentialTable"));
+		rows = table.findElements(By.tagName("tr"));
+		WebElement firstCredentialUrl = rows.get(1).findElement(By.tagName("th"));
+		WebElement firstCredentialPassword = (rows.get(1).findElements(By.tagName("td"))).get(1);
+
+		Assertions.assertAll("Should return correct credential",
+				() -> Assertions.assertEquals("google.com.vn", firstCredentialUrl.getText()),
+				() -> Assertions.assertEquals("usernameedited", firstCredentialPassword.getText()));
+	}
+
+	@Test
+	public void deleteCredential() {
+		try {
+			doLogIn("credential", "credential");
+		} catch (Exception e) {
+			doMockSignUp("credential","credential","credential","credential");
+			doLogIn("credential", "credential");
+		}
+
+		WebDriverWait webDriverWait = new WebDriverWait(driver, 2);
+
+		// Go to credential tab
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Press delete credential button
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialTable")));
+		WebElement table = driver.findElement(By.id("credentialTable"));
+		List<WebElement> rows = table.findElements(By.tagName("tr"));
+		WebElement deletebtn = rows.get(1).findElement(By.tagName("a"));
+		deletebtn.click();
+
+		// Back to home page
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.className("home")));
+		driver.findElement(By.className("home")).click();
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("nav-credentials-tab")));
+		driver.findElement(By.id("nav-credentials-tab")).click();
+
+		// Verify that the note was deleted
+		webDriverWait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credentialTable")));
+		table = driver.findElement(By.id("credentialTable"));
+		rows = table.findElements(By.tagName("tr"));
+
+		Assertions.assertEquals(1, rows.size());
 	}
 
 	/**

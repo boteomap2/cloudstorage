@@ -15,11 +15,11 @@ public interface NoteMapper {
     Note getNoteById(Integer noteId, Integer userId);
 
     @Insert("INSERT INTO NOTES (notetitle, notedescription, userid) VALUES (#{noteTitle}, #{noteDescription}, #{userId})")
-    Integer addNote(Note note);
+    int addNote(Note note);
 
     @Delete("DELETE FROM NOTES WHERE noteid = #{noteId} and userid = #{userId}")
-    Integer deleteNoteById(Integer noteId, Integer userId);
+    int deleteNoteById(Integer noteId, Integer userId);
 
     @Update("UPDATE NOTES SET notetitle = #{noteTitle}, notedescription = #{noteDescription} WHERE noteid = #{noteId} and userid = #{userId}")
-    Integer editNoteById(Note note);
+    int editNoteById(Note note);
 }

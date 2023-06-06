@@ -6,8 +6,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller()
 @AllArgsConstructor
@@ -20,26 +20,25 @@ public class SignupController {
     }
 
     @PostMapping("/signup")
-    public String signupUser(@ModelAttribute User user, Model model) {
-        String signupError = null;
+    public String signupUser(User user, Model model, RedirectAttributes redirectAttributes) {
+        String err = "";
 
         if (userService.getUserByUsername(user.getUsername()) != null) {
-            signupError = "The username already exists.";
+            err = "The username already exists.";
         }
 
-        if (signupError == null) {
-            int rowsAdded = userService.createUser(user);
-            if (rowsAdded < 0) {
-                signupError = "There was an error signing you up. Please try again.";
+        if (err.isBlank()) {
+            int cnt = userService.createUser(user);
+            if (cnt == 0) {
+                err = "There was an error signing you up. Please try again.";
             }
         }
 
-        if (signupError == null) {
-            model.addAttribute("signupSuccess", true);
-        } else {
-            model.addAttribute("signupError", signupError);
+        if (!err.isBlank()) {
+            model.addAttribute("signupError", err);
+            return "signup";
         }
-
-        return "signup";
+        redirectAttributes.addFlashAttribute("signupSuccess", true);
+        return "redirect:/login";
     }
 }

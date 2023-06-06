@@ -30,7 +30,7 @@ public class NoteController {
     }
 
     @PostMapping("/save")
-    public String handleAddNote(Authentication authentication, RedirectAttributes redirectAttributes, Note note) {
+    public String handleSaveNote(Authentication authentication, RedirectAttributes redirectAttributes, Note note) {
         Integer userId = ((User) authentication.getPrincipal()).getUserId();
         Integer noteId = note.getNoteId();
         note.setUserId(userId);
